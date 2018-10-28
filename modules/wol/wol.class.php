@@ -134,7 +134,14 @@ if ($this->view_mode=='ping') {
 }
 
 if ($this->view_mode=='discover') {
+  $this->discover();
 
+}
+
+
+}
+
+ function discover() {
 //echo php_uname();
 //echo PHP_OS;
 
@@ -190,8 +197,6 @@ $this->pingall();
 }
 
 
-}
-
  function pingall() {
 $cmd_rec = SQLSelect("SELECT * FROM wol_devices  ");
 foreach ($cmd_rec as $rc) {
@@ -244,7 +249,8 @@ else
 function admin(&$out) {
  if ($this->view_mode=='mac') {
    global $mac;
-$res=$this->wake($mac);
+//$res=$this->wake($mac);
+$res=$this->WakeOnLan("192.168.1.255", $mac);
 $out['RESULT']=$res;
 }
 

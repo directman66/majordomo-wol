@@ -105,8 +105,8 @@ function run() {
 
 
 
-if ($this->view_mode=='wol') {
-   $this->wol($this->id);
+if ($this->view_mode=='wake') {
+   $this->wake($this->mac);
  }
 
 
@@ -122,7 +122,7 @@ function admin(&$out) {
 
 }
 
-function wol($mac='127.0.0.1') {
+function wake($mac='D0:50:99:54:24:DD') {
 
 
 //magicPacket('D0:50:99:54:24:DD');
@@ -135,11 +135,12 @@ flush();
 // Port number where the computer is listening. Usually, any number between 1-50000 will do. Normally people choose 7 or 9.
 $socket_number = "7";
 // MAC Address of the listening computer's network device
-$mac_addy = "D0:50:99:54:24:DD";
+
 // IP address of the listening computer. Input the domain name if you are using a hostname (like when under Dynamic DNS/IP)
 //$ip_addy = gethostbyname("myhomeserver.dynamicdns.org");
- $ip_addy = "192.168.1.63";
-$this->WakeOnLan($ip_addy, $mac_addy,$socket_number);
+$ip_addy = "192.168.1.63";
+
+$this->WakeOnLan($ip_addy, $mac,$socket_number);
 
 
 }

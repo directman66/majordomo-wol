@@ -119,6 +119,12 @@ if ($this->view_mode=='wake') {
 * @access public
 */
 function admin(&$out) {
+ if ($this->view_mode=='mac') {
+   global $mac;
+$res=$this->wake($mac);
+$out['RESULT']=$res;
+}
+
 
 }
 
@@ -140,8 +146,8 @@ $socket_number = "7";
 //$ip_addy = gethostbyname("myhomeserver.dynamicdns.org");
 $ip_addy = "192.168.1.63";
 
-$this->WakeOnLan($ip_addy, $mac,$socket_number);
-
+$res=$this->WakeOnLan($ip_addy, $mac,$socket_number);
+return $res;
 
 }
 
@@ -156,21 +162,31 @@ function WakeOnLan($addr, $mac,$socket_number) {
   // SQL_BROADCAST option isn't help!!
   $s = socket_create(AF_INET, SOCK_DGRAM, SOL_UDP);
   if ($s == false) {
-    echo "Error creating socket!\n";
-    echo "Error code is '".socket_last_error($s)."' - " . socket_strerror(socket_last_error($s));
-    return FALSE;
+    $res= "Error creating socket!\n";
+    $res.= "Error code is '".socket_last_error($s)."' - " . socket_strerror(socket_last_error($s));
+
+   $out['RESULT']=$res;
+    return $res;
     } else {
     // setting a broadcast option to socket:
     $opt_ret = socket_set_option($s, 1, 6, TRUE);
     if($opt_ret <0) {
-      echo "setsockopt() failed, error: " . strerror($opt_ret) . "\n";
+    $res= "setsockopt() failed, error: " . strerror($opt_ret) . "\n";
+   $out['RESULT']=$res;
+
       return FALSE;      }
     if(socket_sendto($s, $msg, strlen($msg), 0, $addr, $socket_number)) {
-      echo "Magic Packet sent successfully!";
+
+    $res= "Magic Packet sent successfully!";
+//   $out['RESULT']=$res;
+
       socket_close($s);
-      return TRUE;
-      }   else {      echo "Magic packet failed!";
-      return FALSE;
+      return $res;
+      }   else {      
+    $res= "Magic packet failed!";
+   $out['RESULT']=$res;
+
+      return $res;
       }   }  }
 
 

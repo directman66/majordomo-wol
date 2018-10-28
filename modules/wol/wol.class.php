@@ -308,14 +308,14 @@ function wakeOnLan($broadcast, $mac)
         $packet .= $hwaddr;
     }
 
-    $sock = socket_create(AF_INET, SOCK_DGRAM, SOL_UDP);
+    $sock = @socket_create(AF_INET, SOCK_DGRAM, SOL_UDP);
     if ($sock)
     {
-        $options = socket_set_option($sock, 1, 6, true);
+        $options = @socket_set_option($sock, 1, 6, true);
 
         if ($options >=0) 
         {    
-            $e = socket_sendto($sock, $packet, strlen($packet), 0, $broadcast, 7);
+            $e = @socket_sendto($sock, $packet, strlen($packet), 0, $broadcast, 7);
             socket_close($sock);
         }    
     }

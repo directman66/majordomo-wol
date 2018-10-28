@@ -458,12 +458,6 @@ function usual(&$out) {
  
  function dbInstall($data) {
 
-$cmd_rec = SQLSelectOne("SELECT * FROM wol_devices");
-if (!$cmd_rec['ID']) {
-
-
-
-
  $data = <<<EOD
  wol_devices: ID int(10) unsigned NOT NULL auto_increment
  wol_devices: TITLE varchar(100) NOT NULL DEFAULT ''
@@ -473,8 +467,6 @@ if (!$cmd_rec['ID']) {
  wol_devices: LASTPING varchar(100) NOT NULL DEFAULT ''
  wol_devices: ONLINE varchar(100) NOT NULL DEFAULT ''
 EOD;
-  parent::dbInstall($data);
-}
 
 
   parent::dbInstall($data);

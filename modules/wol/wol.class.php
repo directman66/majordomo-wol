@@ -18,7 +18,7 @@ class wol extends module {
 function wol() {
   $this->name="wol";
   $this->title="WakeOnLan";
-  $this->module_category="<#LANG_SECTION_APPLICATIONS#>";
+  $this->module_category="<#LANG_SECTION_DEVICES#>";
   $this->checkInstalled();
 }
 /**
@@ -103,14 +103,121 @@ function run() {
   $p=new parser(DIR_TEMPLATES.$this->name."/".$this->name.".html", $this->data, $this);
   $this->result=$p->result;
 
-
+//echo 'view_mode:'.$this->view_mode;
 
 if ($this->view_mode=='wake') {
-   $this->wake($this->mac);
+//if ($this->view_mode=='mac') {
+
+//$mac=$this->mac;
+global $mac;
+//echo  ' mac:'.$mac;
+$cmd_rec = SQLSelectOne("SELECT * FROM wol_devices where MAC='$mac'");
+if (!$cmd_rec['ID']) 
+{
+$cmd_rec['MAC']=$mac;
+SQLInsert('wol_devices', $cmd_rec);
+}
+
+
+ $this->wake($mac);
  }
 
 
+ if ($this->view_mode=='indata_del') {
+   $this->delete($this->id);
+
+ }	
+
+
+if ($this->view_mode=='discover') {
+
+//echo php_uname();
+//echo PHP_OS;
+
+if (substr(php_uname(),0,5)=='Linux')  {
+//echo "это линус";
+//$cmd='nmap -sn 192.168.1.0/24';
+
+//$cmd='echo 192.168.1.{1..254}|xargs -n1 -P0 ping -c1|grep "bytes from"';
+$cmd='arp -a';
+$answ=shell_exec($cmd);
+//echo $answ;
+$data2 =preg_split('/\\r\\n?|\\n/',$answ);
+
+for($i=0;$i<count($data2);$i++) {
+$name=explode(' ',$data2[$i])[0];
+$ipadr=str_replace(')','',str_replace('(','',explode(' ',$data2[$i])[1]));
+$mac=explode(' ',$data2[$i])[3];
+//echo $name.":".$ipadr.":".$mac ."<br>";
+
+$online=ping(processTitle($ipadr));
+    if ($online) 
+{$onlinest="1";} 
+else 
+{$onlinest="0";} 
+
+
+
+$cmd_rec = SQLSelectOne("SELECT * FROM wol_devices where MAC='$mac'");
+if (!$cmd_rec['ID']) 
+{
+$cmd_rec['MAC']=$mac;
+$cmd_rec['IPADDR']=$ipadr;
+$cmd_rec['TITLE']=$name;
+$cmd_rec['ONLINE']=$onlinest;
+SQLInsert('wol_devices', $cmd_rec);
+} else {
+$cmd_rec['MAC']=$mac;
+$cmd_rec['IPADDR']=$ipadr;
+$cmd_rec['TITLE']=$name;
+
+SQLUpdate('wol_devices', $cmd_rec);
 }
+
+
+}
+
+
+
+}
+
+
+}
+
+
+}
+
+
+ function delete($id) {
+  $rec=SQLSelectOne("SELECT * FROM wol_devices WHERE ID='$id'");
+  // some action for related tables
+  SQLExec("DELETE FROM wol_devices WHERE ID='".$rec['ID']."'");
+ }
+
+
+ function searchdevices(&$out) {
+
+
+$mhdevices=SQLSelect("SELECT * FROM wol_devices");
+$total = count($mhdevices);
+for ($i = 0; $i < $total; $i++)
+{ 
+$ip=$mhdevices[$i]['IPADDR'];
+$lastping=$mhdevices[$i]['LASTPING'];
+//echo time()-$lastping;
+if (time()-$lastping>300) {
+$online=ping(processTitle($ip));
+    if ($online) 
+{SQLexec("update wol_devices set ONLINE='1', LASTPING=".time()." where IPADDR='$ip'");} 
+else 
+{SQLexec("update wol_devices set ONLINE='0', LASTPING=".time()." where IPADDR='$ip'");}
+}}
+
+  require(DIR_MODULES.$this->name.'/search.inc.php');
+ }
+
+
+
 /**
 * BackEnd
 *
@@ -125,6 +232,7 @@ $res=$this->wake($mac);
 $out['RESULT']=$res;
 }
 
+$this->searchdevices($out);
 
 }
 
@@ -322,9 +430,31 @@ function usual(&$out) {
 */
  function install($data='') {
   parent::install();
+
+
  }
  
  function dbInstall($data) {
+
+$cmd_rec = SQLSelectOne("SELECT * FROM wol_devices");
+if (!$cmd_rec['ID']) {
+
+
+
+
+ $data = <<<EOD
+ wol_devices: ID int(10) unsigned NOT NULL auto_increment
+ wol_devices: TITLE varchar(100) NOT NULL DEFAULT ''
+ wol_devices: MAC varchar(100) NOT NULL DEFAULT ''
+ wol_devices: IPADDR varchar(100) NOT NULL DEFAULT ''
+ wol_devices: NAME varchar(100) NOT NULL DEFAULT ''
+ wol_devices: LASTPING varchar(100) NOT NULL DEFAULT ''
+ wol_devices: ONLINE varchar(100) NOT NULL DEFAULT ''
+EOD;
+  parent::dbInstall($data);
+}
+
+
   parent::dbInstall($data);
  }
  

@@ -481,7 +481,7 @@ EOD;
  }
  
  function uninstall() {
-
+SQLExec('DROP TABLE IF EXISTS wol_devices');
   parent::uninstall();
  }
  

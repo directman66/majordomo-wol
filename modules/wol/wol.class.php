@@ -129,6 +129,10 @@ SQLInsert('wol_devices', $cmd_rec);
  }	
 
 
+if ($this->view_mode=='ping') {
+  $this->pingall();
+}
+
 if ($this->view_mode=='discover') {
 
 //echo php_uname();
@@ -150,11 +154,11 @@ $ipadr=str_replace(')','',str_replace('(','',explode(' ',$data2[$i])[1]));
 $mac=explode(' ',$data2[$i])[3];
 //echo $name.":".$ipadr.":".$mac ."<br>";
 
-$online=ping(processTitle($ipadr));
-    if ($online) 
-{$onlinest="1";} 
-else 
-{$onlinest="0";} 
+//$online=ping(processTitle($ipadr));
+//    if ($online) 
+//{$onlinest="1";} 
+//else 
+//{$onlinest="0";} 
 
 
 
@@ -164,7 +168,7 @@ if (!$cmd_rec['ID'])
 $cmd_rec['MAC']=$mac;
 $cmd_rec['IPADDR']=$ipadr;
 $cmd_rec['TITLE']=$name;
-$cmd_rec['ONLINE']=$onlinest;
+//$cmd_rec['ONLINE']=$onlinest;
 SQLInsert('wol_devices', $cmd_rec);
 } else {
 $cmd_rec['MAC']=$mac;
@@ -179,14 +183,26 @@ SQLUpdate('wol_devices', $cmd_rec);
 
 
 
+
+}
+
+$this->pingall();
 }
 
 
 }
 
+ function pingall() {
+$cmd_rec = SQLSelect("SELECT * FROM wol_devices  ");
+foreach ($cmd_rec as $rc) {
+//echo $rc['IPADDR'];
+$online=ping(processTitle($rc['IPADDR']));
+if ($online) {$onlinest="1";} else {$onlinest="0";} 
 
+$cmd_rec['ONLINE']=$onlinest;
+SQLUpdate('wol_devices', $cmd_rec);
 }
-
+}
 
  function delete($id) {
   $rec=SQLSelectOne("SELECT * FROM wol_devices WHERE ID='$id'");

@@ -279,7 +279,7 @@ flush();
 //$res=$this->WakeOnLan($ip_addy, $mac,$socket_number);
 
 //$res=$this->WakeOnLan("255.255.255.255", $mac);
-$res=$this->WakeOnLan("192.168.1.255", $mac);
+$res=$this->WakeOnLan("192.168.255.255", $mac);
 return $res;
 
 }

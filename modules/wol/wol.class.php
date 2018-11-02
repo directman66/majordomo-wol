@@ -250,7 +250,7 @@ function admin(&$out) {
  if ($this->view_mode=='mac') {
    global $mac;
 //$res=$this->wake($mac);
-$res=$this->WakeOnLan("192.168.255.255", $mac);
+$res=$this->WakeOnLan("255.255.255.255", $mac);
 $out['RESULT']=$res;
 }
 

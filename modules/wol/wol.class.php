@@ -159,15 +159,44 @@ for($i=0;$i<count($data2);$i++) {
 $name=explode(' ',$data2[$i])[0];
 $ipadr=str_replace(')','',str_replace('(','',explode(' ',$data2[$i])[1]));
 $mac=explode(' ',$data2[$i])[3];
+
+$cmd_rec = SQLSelectOne("SELECT * FROM wol_devices where MAC='$mac'");
+if (!$cmd_rec['ID']) 
+{
+$cmd_rec['MAC']=$mac;
+$cmd_rec['IPADDR']=$ipadr;
+$cmd_rec['TITLE']=$name;
+//$cmd_rec['ONLINE']=$onlinest;
+SQLInsert('wol_devices', $cmd_rec);
+} else {
+$cmd_rec['MAC']=$mac;
+$cmd_rec['IPADDR']=$ipadr;
+$cmd_rec['TITLE']=$name;
+
+SQLUpdate('wol_devices', $cmd_rec);
+}
+}
+
+
+} 
+
+else 
+
+ {
+//echo "это виндовс";
+//$cmd='nmap -sn 192.168.1.0/24';
+
+//$cmd='echo 192.168.1.{1..254}|xargs -n1 -P0 ping -c1|grep "bytes from"';
+$cmd='arp -a';
+$answ=shell_exec($cmd);
+//echo $answ;
+$data2 =preg_split('/\\r\\n?|\\n/',$answ);
+
+for($i=0;$i<count($data2);$i++) {
+$name=explode(' ',$data2[$i])[0];
+$ipadr=str_replace(')','',str_replace('(','',explode(' ',$data2[$i])[1]));
+$mac=explode(' ',$data2[$i])[3];
 //echo $name.":".$ipadr.":".$mac ."<br>";
-
-//$online=ping(processTitle($ipadr));
-//    if ($online) 
-//{$onlinest="1";} 
-//else 
-//{$onlinest="0";} 
-
-
 
 $cmd_rec = SQLSelectOne("SELECT * FROM wol_devices where MAC='$mac'");
 if (!$cmd_rec['ID']) 
@@ -187,11 +216,11 @@ SQLUpdate('wol_devices', $cmd_rec);
 
 
 }
-
-
-
-
 }
+
+
+
+
 
 $this->pingall();
 }

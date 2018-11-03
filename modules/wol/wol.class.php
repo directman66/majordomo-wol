@@ -138,6 +138,12 @@ if ($this->view_mode=='discover') {
 
 }
 
+if ($this->view_mode=='cleraall') {
+  $this->cleraall();
+
+}
+
+
 
 }
 
@@ -193,9 +199,16 @@ $answ=shell_exec($cmd);
 $data2 =preg_split('/\\r\\n?|\\n/',$answ);
 
 for($i=0;$i<count($data2);$i++) {
-$name=explode(' ',$data2[$i])[0];
-$ipadr=str_replace(')','',str_replace('(','',explode(' ',$data2[$i])[1]));
-$mac=explode(' ',$data2[$i])[3];
+//echo $data2[$i]."<br>";
+
+
+$ip=explode(' ',$data2[$i]);
+
+$mac=explode(' ',$data2[$i]);
+
+echo  $ip.":".$mac;
+//$name=explode(' ',$data2[$i]);
+
 //echo $name.":".$ipadr.":".$mac ."<br>";
 
 $cmd_rec = SQLSelectOne("SELECT * FROM wol_devices where MAC='$mac'");
@@ -222,9 +235,13 @@ SQLUpdate('wol_devices', $cmd_rec);
 
 
 
-$this->pingall();
+//$this->pingall();
 }
 
+
+ function clearall() {
+$cmd_rec = SQLSelect("delete  FROM wol_devices  ");
+}
 
  function pingall() {
 $cmd_rec = SQLSelect("SELECT * FROM wol_devices  ");

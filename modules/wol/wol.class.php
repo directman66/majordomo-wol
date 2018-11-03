@@ -108,7 +108,8 @@ function run() {
 //echo 'view_mode:'.$this->view_mode;
 
 if ($this->view_mode=='wake') {
-//if ($this->view_mode=='mac') {
+//if ($this->type=='button') {
+if (!$this->mac) {
 
 //$mac=$this->mac;
 global $mac;
@@ -119,9 +120,17 @@ if (!$cmd_rec['ID'])
 $cmd_rec['MAC']=$mac;
 SQLInsert('wol_devices', $cmd_rec);
 }
+}
+else 
+$mac=$this->mac;
+//{
+//$mac=SQLSelectOne("SELECT * FROM wol_devices where MAC='$mac'")['MAC'];
+//}
 
-
- $this->wake($mac);
+ $this->WakeOnLan('255.255.255.255',$mac);
+ $this->WakeOnLan('192.168.255.255',$mac);
+ $this->WakeOnLan('192.168.0.255',$mac);
+ $this->WakeOnLan('192.168.1.255',$mac);
  }
 
 
@@ -314,6 +323,9 @@ function admin(&$out) {
    global $mac;
 //$res=$this->wake($mac);
 $res=$this->WakeOnLan("255.255.255.255", $mac);
+ $this->WakeOnLan('192.168.255.255',$mac);
+ $this->WakeOnLan('192.168.0.255',$mac);
+ $this->WakeOnLan('192.168.1.255',$mac);
 $out['RESULT']=$res;
 }
 
@@ -324,6 +336,8 @@ $this->searchdevices($out);
 
 function wakeOnLan($broadcast, $mac)
 {
+
+echo "sending ".$broadcast.':'.$mac."<br>";
     $mac_array = explode(':', $mac);
 
     $hwaddr = '';

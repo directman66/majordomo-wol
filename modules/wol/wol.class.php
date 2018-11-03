@@ -7,6 +7,8 @@
 */
 //
 //
+ini_set ('display_errors', 'off');
+
 class wol extends module {
 /**
 * yandex_tts
@@ -138,8 +140,8 @@ if ($this->view_mode=='discover') {
 
 }
 
-if ($this->view_mode=='clerall') {
-  $this->clerall();
+if ($this->view_mode=='clearall') {
+  $this->clearall();
 
 }
 
@@ -201,12 +203,16 @@ $data2 =preg_split('/\\r\\n?|\\n/',$answ);
 for($i=0;$i<count($data2);$i++) {
 //echo $data2[$i]."<br>";
 
+$ar=explode(' ',$data2[$i]);
+//print_r($ar);
+//echo "<br>";
 
-$ip=explode(' ',$data2[$i]);
+$ipadr=$ar[2];
+$mac=$ar[12];
 
-$mac=explode(' ',$data2[$i]);
+//$mac=explode(' ',$data2[$i])[1];
 
-echo  $ip.":".$mac;
+//echo  $ipadr.":".$mac;
 //$name=explode(' ',$data2[$i]);
 
 //echo $name.":".$ipadr.":".$mac ."<br>";
@@ -304,31 +310,6 @@ $this->searchdevices($out);
 
 }
 
-function wake($mac='D0:50:99:54:24:DD') {
-
-
-//magicPacket('D0:50:99:54:24:DD');
-//$ip_addy = "192.168.1.63";
-
-# Wake on LAN - (c) HotKey@spr.at, upgraded by Murzik
-# Modified by Allan Barizo http://www.hackernotcracker.com
-flush();
-
-// Port number where the computer is listening. Usually, any number between 1-50000 will do. Normally people choose 7 or 9.
-//$socket_number = "7";
-// MAC Address of the listening computer's network device
-
-// IP address of the listening computer. Input the domain name if you are using a hostname (like when under Dynamic DNS/IP)
-//$ip_addy = gethostbyname("myhomeserver.dynamicdns.org");
-//$ip_addy = "192.168.1.63";
-
-//$res=$this->WakeOnLan($ip_addy, $mac,$socket_number);
-
-//$res=$this->WakeOnLan("255.255.255.255", $mac);
-$res=$this->WakeOnLan("192.168.255.255", $mac);
-return $res;
-
-}
 
 function wakeOnLan($broadcast, $mac)
 {

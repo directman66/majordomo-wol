@@ -217,6 +217,17 @@ $mac=$ar[12];
 
 //echo $name.":".$ipadr.":".$mac ."<br>";
 
+
+$cmd='arp -a';
+$answ=shell_exec($cmd);
+//echo $answ;
+
+
+$name=$this->nbt_getName($ipadr);
+//$name=$this->nbt_getName('192.168.1.63');
+echo $name;
+
+
 $cmd_rec = SQLSelectOne("SELECT * FROM wol_devices where MAC='$mac'");
 if (!$cmd_rec['ID']) 
 {
@@ -503,6 +514,110 @@ EOD;
 SQLExec('DROP TABLE IF EXISTS wol_devices');
   parent::uninstall();
  }
+
+
+
+
+// Sends NBSTAT packet and decodes response
+/* Коды ошибок:
+
+  -1 Не удалось получить ответ
+   2 Количество секций в ответе не совпадает с ожидаемым
+   3 Неверный формат пакета ответа
+*/
+function nbt_getinfo($ip) {
+// Пакет NetBIOS с запросом NBSTAT
+    $data = chr(0x81) . chr(0x0c) . chr(0x00) . chr(0x00) . chr(0x00) . chr(0x01) .
+        chr(0x00) . chr(0x00) . chr(0x00) . chr(0x00) . chr(0x00) . chr(0x00) .
+        chr(0x20) . chr(0x43) . chr(0x4b) . chr(0x41) . chr(0x41) . chr(0x41) .
+        chr(0x41) . chr(0x41) . chr(0x41) . chr(0x41) . chr(0x41) . chr(0x41) .
+        chr(0x41) . chr(0x41) . chr(0x41) . chr(0x41) . chr(0x41) . chr(0x41) .
+        chr(0x41) . chr(0x41) . chr(0x41) . chr(0x41) . chr(0x41) . chr(0x41) .
+        chr(0x41) . chr(0x41) . chr(0x41) . chr(0x41) . chr(0x41) . chr(0x41) .
+        chr(0x41) . chr(0x41) . chr(0x41) . chr(0x00) . chr(0x00) . chr(0x21) .
+        chr(0x00) . chr(0x01);
+
+    $fp = fsockopen("udp://$ip:137");
+    fputs($fp, $data);
+    stream_set_timeout($fp, 1);
+    $response['transaction_id'] = fread($fp, 2);
+    if (empty($response['transaction_id']))
+        return -1;
+    else
+    $response['transaction_id'] = $this->word2num($response['transaction_id']);
+    $response['flags'] = $this->word2num(fread($fp, 2));
+    $response['questions'] = $this->word2num(fread($fp, 2));
+    $response['answers'] = $this->word2num(fread($fp, 2));
+    $response['authority'] = $this->word2num(fread($fp, 2));
+    $response['additional'] = $this->word2num(fread($fp, 2));
+    if (!($response['questions'] == 0 && $response['answers'] == 1 &&
+        $response['authority'] == 0 && $response['additional'] == 0))
+        return 2;
+
+//  Answer section
+    $buf = fread($fp, 1);
+    if ($buf != chr(0x20))
+        return 3;
+
+//  Answer Name
+    $response['answer_name'] = '';
+    while ($buf != chr(0)) {
+        $buf = fread($fp, 1);
+        $response['answer_name'] .= $buf;
+    }
+
+//  Type (should be NBSTAT)
+    $response['answer_type'] = $this->word2num(fread($fp, 2));
+    if ($response['answer_type'] != 33)
+        return 3;
+
+//  Class (should be 1, but we won't check that)
+    $response['answer_class'] = $this->word2num(fread($fp, 2));
+
+//  TTL
+    $response['answer_ttl'] = $this->dword2num(fread($fp, 4));
+
+//  Data length
+    $response['answer_length'] = $this->word2num(fread($fp, 2));
+
+//  Number of names
+    $response['answer_number'] = ord(fread($fp, 1));
+
+//  Getting names
+    for ($i = 1; $i <= $response['answer_number']; $i++) {
+        $response['answer_value'][$i] = fread($fp, 15);
+        $response['answer_type_'][$i] = ord(fread($fp, 1));
+        $response['answer_flags'][$i] = $this->word2num(fread($fp, 2));
+    }
+
+//  Unit ID (MAC)
+    $response['answer_mac'] = fread($fp, 6);
+
+//  There more data follows, but we don't need it, so we can drop it.
+    fclose($fp);
+    return $response;
+}
+
+// Issues nbt_getinfo() and returns target machine NetBIOS from response
+function nbt_getName($ip) {
+    $response = $this->nbt_getinfo($ip);
+    $i = 1;
+    foreach ($response['answer_type_'] as $answer_type_) {
+        if ($answer_type_ == 0)
+            return $response['answer_value'][$i];
+        $i++;
+    }
+}
+
+function word2num($word) {
+    return ord($word[1]) + ord($word[0]) * 16;
+}
+
+function dword2num($dword) {
+    return ord($dword[3]) + ord($dword[2]) * 16 + ord($dword[2]) * 16 * 16 + ord($dword[0]) * 16 * 16 * 16;
+}
+
+
  
 // --------------------------------------------------------------------
 }

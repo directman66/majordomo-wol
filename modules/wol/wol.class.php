@@ -235,7 +235,7 @@ SQLUpdate('wol_devices', $cmd_rec);
 
 
 
-//$this->pingall();
+$this->pingall();
 }
 
 

@@ -135,9 +135,12 @@ $mac=$this->mac;
 
 
  if ($this->view_mode=='indata_del') {
-   $this->delete($this->id);
+   $this->delete($this->id);}	
 
- }	
+ if ($this->view_mode=='addtopinghost') {
+   $this->add_to_pinghost($this->id);
+}	
+
 
 
 if ($this->view_mode=='ping') {
@@ -630,6 +633,32 @@ function word2num($word) {
 function dword2num($dword) {
     return ord($dword[3]) + ord($dword[2]) * 16 + ord($dword[2]) * 16 * 16 + ord($dword[0]) * 16 * 16 * 16;
 }
+
+
+ function add_to_pinghost($id) {
+  if (!$id) {
+      $id = ($_GET["id"]);
+  }
+  $ph=SQLSelectOne("SELECT * FROM wol_devices WHERE ID='".$id."'");
+ print_r($ph);
+  $pinghosts=array(); // опции добавления
+  $pinghosts['TITLE'] = $ph['TITLE'];
+  $pinghosts['TYPE'] = '0';
+  $pinghosts['OFFLINE_INTERVAL'] = '600';
+  $pinghosts['ONLINE_INTERVAL'] = '600';
+  $pinghosts['HOSTNAME'] = $ph['IPADDR'];
+  $pinghosts['CODE_OFFLINE'] = 'say("Устройство ".$host[\'TITLE\']." пропало из сети, возможно его отключили" ,2);';
+  $pinghosts['CODE_ONLINE'] = 'say("Устройство ".$host[\'TITLE\']." появилось в сети." ,2);';
+  $pinghosts['LINKED_OBJECT'] = '';
+  $pinghosts['LINKED_PROPERTY'] = "alive";
+  $pinghosts['CHECK_NEXT'] = date("Y-m-d H:i:s");  
+  $chek=SQLSelectOne("SELECT * FROM pinghosts WHERE HOSTNAME='".$ph['IPADDR']."'");
+  if ($chek['ID']) {
+          $chek['ID'] = SQLUpdate('pinghosts', $pinghosts);
+      } else {	
+          SQLInsert('pinghosts', $pinghosts);
+     }
+ }
 
 
  

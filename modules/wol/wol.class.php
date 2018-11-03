@@ -74,6 +74,9 @@ function getParams() {
   if (isset($tab)) {
    $this->tab=$tab;
   }
+
+
+
 }
 /**
 * Run
@@ -152,6 +155,12 @@ if ($this->view_mode=='discover') {
 
 }
 
+if ($this->view_mode=='nmap') {
+  $this->nmap();
+
+}
+
+
 if ($this->view_mode=='clearall') {
   $this->clearall();
 
@@ -178,21 +187,25 @@ $data2 =preg_split('/\\r\\n?|\\n/',$answ);
 for($i=0;$i<count($data2);$i++) {
 $name=explode(' ',$data2[$i])[0];
 $ipadr=str_replace(')','',str_replace('(','',explode(' ',$data2[$i])[1]));
+
+
 $mac=explode(' ',$data2[$i])[3];
 
+$vendor=$this->getvendor($mac);
+
+
 $cmd_rec = SQLSelectOne("SELECT * FROM wol_devices where MAC='$mac'");
-if (!$cmd_rec['ID']) 
-{
 $cmd_rec['MAC']=$mac;
 $cmd_rec['IPADDR']=$ipadr;
 $cmd_rec['TITLE']=$name;
+$cmd_rec['VENDOR']=$vendor;
+
+
+if (!$cmd_rec['ID']) 
+{
 //$cmd_rec['ONLINE']=$onlinest;
 if (strlen($mac)>4) SQLInsert('wol_devices', $cmd_rec);
 } else {
-$cmd_rec['MAC']=$mac;
-$cmd_rec['IPADDR']=$ipadr;
-$cmd_rec['TITLE']=$name;
-
 SQLUpdate('wol_devices', $cmd_rec);
 }
 }
@@ -239,20 +252,24 @@ $name=$this->nbt_getName($ipadr);
 //$name=$this->nbt_getName('192.168.1.63');
 //echo $name;
 
+$vendor=$this->getvendor($mac);
+
+
 
 $cmd_rec = SQLSelectOne("SELECT * FROM wol_devices where MAC='$mac'");
+
+
+echo $mac.":".$vendor;
+$cmd_rec['MAC']=$mac;
+$cmd_rec['IPADDR']=$ipadr;
+$cmd_rec['TITLE']=$name;
+$cmd_rec['VENDOR']=$vendor;
+
+
 if (!$cmd_rec['ID']) 
 {
-$cmd_rec['MAC']=$mac;
-$cmd_rec['IPADDR']=$ipadr;
-$cmd_rec['TITLE']=$name;
-//$cmd_rec['ONLINE']=$onlinest;
 if (strlen($mac)>4) SQLInsert('wol_devices', $cmd_rec);
 } else {
-$cmd_rec['MAC']=$mac;
-$cmd_rec['IPADDR']=$ipadr;
-$cmd_rec['TITLE']=$name;
-
 SQLUpdate('wol_devices', $cmd_rec);
 }
 
@@ -521,6 +538,7 @@ function usual(&$out) {
  wol_devices: NAME varchar(100) NOT NULL DEFAULT ''
  wol_devices: LASTPING varchar(100) NOT NULL DEFAULT ''
  wol_devices: ONLINE varchar(100) NOT NULL DEFAULT ''
+ wol_devices: VENDOR varchar(100) NOT NULL DEFAULT ''
 EOD;
 
 
@@ -661,6 +679,18 @@ function dword2num($dword) {
  }
 
 
+ function getvendor($mac) {
+
+$url="https://macvendors.co/api/$mac/json";
+$file = file_get_contents($url);
+$data=json_decode($file,true);
+//echo $file;
+//echo "<br>";
+$vendor=$data['result']['company'];
+return $vendor;
+
+
+}
  
 // --------------------------------------------------------------------
 }

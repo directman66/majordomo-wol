@@ -225,7 +225,7 @@ $answ=shell_exec($cmd);
 
 $name=$this->nbt_getName($ipadr);
 //$name=$this->nbt_getName('192.168.1.63');
-echo $name;
+//echo $name;
 
 
 $cmd_rec = SQLSelectOne("SELECT * FROM wol_devices where MAC='$mac'");
@@ -252,7 +252,7 @@ SQLUpdate('wol_devices', $cmd_rec);
 
 
 
-//$this->pingall();
+$this->pingall();
 }
 
 

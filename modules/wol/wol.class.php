@@ -184,7 +184,7 @@ $cmd_rec['MAC']=$mac;
 $cmd_rec['IPADDR']=$ipadr;
 $cmd_rec['TITLE']=$name;
 //$cmd_rec['ONLINE']=$onlinest;
-SQLInsert('wol_devices', $cmd_rec);
+if (strlen($mac)>4) SQLInsert('wol_devices', $cmd_rec);
 } else {
 $cmd_rec['MAC']=$mac;
 $cmd_rec['IPADDR']=$ipadr;
@@ -244,7 +244,7 @@ $cmd_rec['MAC']=$mac;
 $cmd_rec['IPADDR']=$ipadr;
 $cmd_rec['TITLE']=$name;
 //$cmd_rec['ONLINE']=$onlinest;
-SQLInsert('wol_devices', $cmd_rec);
+if (strlen($mac)>4) SQLInsert('wol_devices', $cmd_rec);
 } else {
 $cmd_rec['MAC']=$mac;
 $cmd_rec['IPADDR']=$ipadr;
@@ -326,7 +326,7 @@ $res=$this->WakeOnLan("255.255.255.255", $mac);
  $this->WakeOnLan('192.168.255.255',$mac);
  $this->WakeOnLan('192.168.0.255',$mac);
  $this->WakeOnLan('192.168.1.255',$mac);
-$out['RESULT']=$res;
+$out['RESULT']=print_r($res);
 }
 
 $this->searchdevices($out);
@@ -337,7 +337,7 @@ $this->searchdevices($out);
 function wakeOnLan($broadcast, $mac)
 {
 
-echo "sending ".$broadcast.':'.$mac."<br>";
+//echo "sending ".$broadcast.':'.$mac."<br>";
     $mac_array = explode(':', $mac);
 
     $hwaddr = '';

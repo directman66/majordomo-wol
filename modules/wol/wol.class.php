@@ -138,8 +138,8 @@ if ($this->view_mode=='discover') {
 
 }
 
-if ($this->view_mode=='cleraall') {
-  $this->cleraall();
+if ($this->view_mode=='clerall') {
+  $this->clerall();
 
 }
 
@@ -235,7 +235,7 @@ SQLUpdate('wol_devices', $cmd_rec);
 
 
 
-$this->pingall();
+//$this->pingall();
 }
 
 

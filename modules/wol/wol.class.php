@@ -658,7 +658,7 @@ function dword2num($dword) {
       $id = ($_GET["id"]);
   }
   $ph=SQLSelectOne("SELECT * FROM wol_devices WHERE ID='".$id."'");
- print_r($ph);
+// print_r($ph);
   $pinghosts=array(); // опции добавления
   $pinghosts['TITLE'] = $ph['TITLE'];
   $pinghosts['TYPE'] = '0';

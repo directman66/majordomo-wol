@@ -388,6 +388,7 @@ function wakeOnLan($broadcast, $mac)
         if ($options >=0) 
         {    
             $e = @socket_sendto($sock, $packet, strlen($packet), 0, $broadcast, 7);
+            $e = @socket_sendto($sock, $packet, strlen($packet), 0, $broadcast, 9);
             socket_close($sock);
         }    
     }

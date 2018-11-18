@@ -179,6 +179,9 @@ if (substr(php_uname(),0,5)=='Linux')  {
 //$cmd='nmap -sn 192.168.1.0/24';
 
 //$cmd='echo 192.168.1.{1..254}|xargs -n1 -P0 ping -c1|grep "bytes from"';
+  
+//альтернативный вариант, можно будет его использовать  без установки net-utils  
+//cat /proc/net/arp  
 $cmd='arp -a';
 $answ=shell_exec($cmd);
 //echo $answ;

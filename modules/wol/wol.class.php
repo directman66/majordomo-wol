@@ -300,7 +300,9 @@ for ($i = 0; $i < $total; $i++)
 $ip=$mhdevices[$i]['IPADDR'];
 $lastping=$mhdevices[$i]['LASTPING'];
 //echo time()-$lastping;
-if (time()-$lastping>300) {
+if ((!$lastping)||(time()-$lastping>300))
+
+{
 
 
 
@@ -312,7 +314,7 @@ else
 {SQLexec("update wol_devices set ONLINE=0, LASTPING='.time().' where IPADDR=\''.$ip.'\'");}
 
 ';
- SetTimeOut('wol_devices_ping',$cmd, '1'); 
+ SetTimeOut('wol_devices_ping'.$i,$cmd, '1'); 
 
 
 }

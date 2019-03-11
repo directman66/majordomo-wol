@@ -293,6 +293,34 @@ $cmd_rec = SQLSelect("delete  FROM wol_devices  ");
 }
 
  function pingall() {
+$mhdevices=SQLSelect("SELECT * FROM wol_devices");
+$total = count($mhdevices);
+for ($i = 0; $i < $total; $i++)
+{ 
+$ip=$mhdevices[$i]['IPADDR'];
+$lastping=$mhdevices[$i]['LASTPING'];
+//echo time()-$lastping;
+if (time()-$lastping>300) {
+
+
+
+$cmd='
+$online=ping(processTitle("'.$ip.'"));
+if ($online) 
+{SQLexec("update wol_devices set ONLINE=1, LASTPING='.time().' where IPADDR=\''.$ip.'\'");} 
+else 
+{SQLexec("update wol_devices set ONLINE=0, LASTPING='.time().' where IPADDR=\''.$ip.'\'");}
+
+';
+ SetTimeOut('wol_devices_ping',$cmd, '1'); 
+
+
+}
+
+}
+/*
+
+
 $cmd_rec = SQLSelect("SELECT * FROM wol_devices  ");
 foreach ($cmd_rec as $rc) {
 //echo $rc['IPADDR'];
@@ -300,8 +328,11 @@ $online=ping(processTitle($rc['IPADDR']));
 if ($online) {$onlinest="1";} else {$onlinest="0";} 
 
 $cmd_rec['ONLINE']=$onlinest;
+
 SQLUpdate('wol_devices', $cmd_rec);
 }
+*/
+
 }
 
  function delete($id) {
@@ -313,7 +344,8 @@ SQLUpdate('wol_devices', $cmd_rec);
 
  function searchdevices(&$out) {
 
-
+  $this->pingall();
+/*
 $mhdevices=SQLSelect("SELECT * FROM wol_devices");
 $total = count($mhdevices);
 for ($i = 0; $i < $total; $i++)
@@ -328,6 +360,7 @@ $online=ping(processTitle($ip));
 else 
 {SQLexec("update wol_devices set ONLINE='0', LASTPING=".time()." where IPADDR='$ip'");}
 }}
+*/
 
   require(DIR_MODULES.$this->name.'/search.inc.php');
  }

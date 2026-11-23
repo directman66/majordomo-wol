@@ -185,14 +185,16 @@ if (substr(php_uname(),0,5)=='Linux')  {
 $cmd='arp -a';
 $answ=shell_exec($cmd);
 //echo $answ;
-$data2 =preg_split('/\\r\\n?|\\n/',$answ);
+$data2 =preg_split('/\\r\\n?|\\n/',(string)$answ);
 
 for($i=0;$i<count($data2);$i++) {
-$name=explode(' ',$data2[$i])[0];
-$ipadr=str_replace(')','',str_replace('(','',explode(' ',$data2[$i])[1]));
+$fields=preg_split('/\s+/',trim((string)$data2[$i]));
+$name=isset($fields[0])?$fields[0]:'';
+$ipadr=isset($fields[1])?trim($fields[1],'()'):'';
 
 
-$mac=explode(' ',$data2[$i])[3];
+$mac=isset($fields[3])?$fields[3]:'';
+if (strlen($mac)<=4) continue;
 
 $vendor=$this->getvendor($mac);
 
@@ -226,17 +228,18 @@ else
 $cmd='arp -a';
 $answ=shell_exec($cmd);
 //echo $answ;
-$data2 =preg_split('/\\r\\n?|\\n/',$answ);
+$data2 =preg_split('/\\r\\n?|\\n/',(string)$answ);
 
 for($i=0;$i<count($data2);$i++) {
 //echo $data2[$i]."<br>";
 
-$ar=explode(' ',$data2[$i]);
+$ar=preg_split('/\s+/',trim((string)$data2[$i]));
 //print_r($ar);
 //echo "<br>";
 
-$ipadr=$ar[2];
-$mac=$ar[12];
+$ipadr=isset($ar[2])?$ar[2]:'';
+$mac=isset($ar[12])?$ar[12]:'';
+if (strlen($mac)<=4) continue;
 
 //$mac=explode(' ',$data2[$i])[1];
 
@@ -384,7 +387,7 @@ $res=$this->WakeOnLan("255.255.255.255", $mac);
  $this->WakeOnLan('192.168.255.255',$mac);
  $this->WakeOnLan('192.168.0.255',$mac);
  $this->WakeOnLan('192.168.1.255',$mac);
-$out['RESULT']=print_r($res);
+$out['RESULT']=print_r($res, true);
 }
 
 $this->searchdevices($out);
@@ -440,6 +443,7 @@ function wakeOnLan7($ipAddr,$macAddr) {
         $magicPacket.= chr(0xff);
     }
     $aryMacAddr = explode(":", $macAddr, 6);
+    for ($i=0; $i<6; $i++) $aryMacAddr[$i] = isset($aryMacAddr[$i])?$aryMacAddr[$i]:'00';
     $buffer = pack("H*H*H*H*H*H*", $aryMacAddr[0], $aryMacAddr[1], $aryMacAddr[2],
     $aryMacAddr[3], $aryMacAddr[4], $aryMacAddr[5]);
     for ($i=0; $i<16; $i++) {
@@ -448,6 +452,7 @@ function wakeOnLan7($ipAddr,$macAddr) {
  
     // makeBroadCastAddr
     $aryIpAddr = explode(".", $ipAddr, 4);
+    for ($i=0; $i<4; $i++) $aryIpAddr[$i] = isset($aryIpAddr[$i])?$aryIpAddr[$i]:'0';
     if ($aryIpAddr[0] < 127) {
         $aryIpAddr[1] = "255";
     }
@@ -473,12 +478,15 @@ function wakeOnLan7($ipAddr,$macAddr) {
 function WakeOnLan6($broadcast, $mac_addres){
 $package = chr(255).chr(255).chr(255).chr(255).chr(255).chr(255);
 $parts_mac = explode(':', $mac_addres);
-for ($i=0; $i < 6; $i++) $transform_mac .= chr(hexdec($parts_mac[$i]));
+$transform_mac = '';
+for ($i=0; $i < 6; $i++) $transform_mac .= chr(hexdec(isset($parts_mac[$i])?$parts_mac[$i]:'0'));
 for($i = 1; $i <= 16; $i++) $package .= $transform_mac;
 $port=80;
-$wol = fsockopen("udp://$broadcast", $port);
-fwrite($wol, $package);
-fclose($wol);
+$wol = @fsockopen("udp://$broadcast", $port);
+if ($wol) {
+  fwrite($wol, $package);
+  fclose($wol);
+}
 
 }
 
@@ -513,22 +521,24 @@ $hwaddr = '';
 function WakeOnLan1($addr, $mac,$socket_number) {
   $addr_byte = explode(':', $mac);
   $hw_addr = '';
-  for ($a=0; $a <6; $a++) $hw_addr .= chr(hexdec($addr_byte[$a]));
+  for ($a=0; $a <6; $a++) $hw_addr .= chr(hexdec(isset($addr_byte[$a])?$addr_byte[$a]:'0'));
   $msg = chr(255).chr(255).chr(255).chr(255).chr(255).chr(255);
   for ($a = 1; $a <= 16; $a++) $msg .= $hw_addr;
   // send it to the broadcast address using UDP
   // SQL_BROADCAST option isn't help!!
   $s = socket_create(AF_INET, SOCK_DGRAM, SOL_UDP);
-  if ($s == false) {
+  if ($s === false) {
+    $err = socket_last_error();
     $res= "Error creating socket!\n";
-    $res.= "Error code is '".socket_last_error($s)."' - " . socket_strerror(socket_last_error($s));
+    $res.= "Error code is '".$err."' - " . socket_strerror($err);
     return $res;
     } else {
     // setting a broadcast option to socket:
     $opt_ret = socket_set_option($s, 1, 6, TRUE);
-    if($opt_ret <0) {
-    $res= "setsockopt() failed, error: " . strerror($opt_ret) . "\n";
-
+    if($opt_ret === false) {
+      $err = socket_last_error($s);
+      $res= "setsockopt() failed, error: " . socket_strerror($err) . "\n";
+      socket_close($s);
       return $res;
       }
     if(socket_sendto($s, $msg, strlen($msg), 0, $addr, $socket_number)) {
